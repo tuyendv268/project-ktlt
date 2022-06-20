@@ -132,9 +132,7 @@ void display(vector<Sensor> sensors){
     }
 }
 
-void write_data_to_csv_file(vector<Sensor> sensors){
-    int starting_time = convert_time_to_second(sensors[0].time);
-    string file_name = "speed_data_"+to_string(starting_time)+".csv";
+void write_csv_file(vector<Sensor> sensors, string file_name){
     FILE *file_pointer;
     file_pointer = fopen(file_name.c_str(), "w+");
     fprintf(file_pointer,"id, time, values\n");
@@ -145,6 +143,13 @@ void write_data_to_csv_file(vector<Sensor> sensors){
         fprintf(file_pointer,"%d, %s, %d\n", id, time.c_str(), values);
     }
     fclose(file_pointer);
+}
+
+void save_data(vector<Sensor> sensors){
+    int starting_time = convert_time_to_second(sensors[0].time);
+    string file_name = "speed_data_"+to_string(starting_time)+".csv";
+
+    write_csv_file(sensors, file_name);
 }
 
 int main(int argc, char** argv){
@@ -184,7 +189,7 @@ int main(int argc, char** argv){
     }
     cout<<user_input.interval<<endl;
     vector<Sensor> sensors = generate_dataset(user_input);
-    write_data_to_csv_file(sensors);
+    save_data(sensors);
     // display(sensors);
     return 0;
 }
