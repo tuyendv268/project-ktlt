@@ -1,4 +1,6 @@
 #include<bits/stdc++.h>
+#include <ctime>
+#include<iostream>
 using namespace std;
 
 struct UserInput{  
@@ -16,17 +18,18 @@ struct Time{
 struct Sensor{
     int id;
     Time time;
-    int values;
+    float values;
 };
 
 bool is_number(char *);
-void write_data_to_csv_file(vector<Sensor> );
+void save_data(vector<Sensor> );
 void display(vector<Sensor> );
 vector<Sensor> generate_dataset(UserInput );
 string convert_time_to_string(Time );
 Time convert_second_to_time(int );
 int convert_time_to_second(Time );
 Time get_current_time();
+void write_csv_file(vector<Sensor>, string);
 Time add_time(Time , Time );
 int parse_argument(vector<string> , const string );
 
@@ -89,6 +92,13 @@ int convert_time_to_second(Time time){
     return time.hour*3600 + time.minute*60 + time.second;
 }
 
+Time subtract_time(Time time1, Time time2){
+    int t1 = convert_time_to_second(time1);
+    int t2= convert_time_to_second(time2);
+    Time res = (t1 > t2)?convert_second_to_time(t1-t2):convert_second_to_time(t2-t1);
+    return res;
+}
+
 Time convert_second_to_time(int second){
     Time time;
     time.hour = (int) second/3600;
@@ -117,11 +127,11 @@ vector<Sensor> generate_dataset(UserInput user_input){
         for(int j = 1; j <= user_input.num_sensors; j++){
             sensor_tmp.id = j;
             sensor_tmp.time = current_time;
-            sensor_tmp.values = rand();
+            sensor_tmp.values = 0.2*(rand()%15000);
             sensors.push_back(sensor_tmp);
+            sampling_time = convert_second_to_time(user_input.sampling);
+            current_time =  add_time(current_time, sampling_time);
         }
-        sampling_time = convert_second_to_time(user_input.num_sensors*user_input.sampling);
-        current_time =  add_time(current_time, sampling_time);
     }
     return sensors;
 }
@@ -139,8 +149,8 @@ void write_csv_file(vector<Sensor> sensors, string file_name){
     for(int i = 0; i < sensors.size();i++){
         int id = sensors[i].id;
         string time = convert_time_to_string(sensors[i].time);
-        int values = sensors[i].values;
-        fprintf(file_pointer,"%d, %s, %d\n", id, time.c_str(), values);
+        float values = sensors[i].values;
+        fprintf(file_pointer,"%d, %s, %0.1f\n", id, time.c_str(), values);
     }
     fclose(file_pointer);
 }
