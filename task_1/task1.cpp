@@ -120,17 +120,26 @@ vector<Sensor> generate_dataset(UserInput user_input){
     vector<Sensor> sensors; 
     Sensor sensor_tmp;
     Time current_time, sampling_time;
-    int number_of_sampling = user_input.interval/user_input.sampling;
+    int number_of_sampling = user_input.interval/(user_input.sampling);
+    int count = 0, flag = 0;
 
     current_time = get_current_time();
     for(int i = 1; i <= number_of_sampling; i++){
+        if(flag==1){
+            break;
+        }
         for(int j = 1; j <= user_input.num_sensors; j++){
+            if(count >= number_of_sampling){
+                flag = 1;
+                break;
+            }
             sensor_tmp.id = j;
             sensor_tmp.time = current_time;
             sensor_tmp.values = 0.2*(rand()%15000);
             sensors.push_back(sensor_tmp);
             sampling_time = convert_second_to_time(user_input.sampling);
             current_time =  add_time(current_time, sampling_time);
+            count+=1;
         }
     }
     return sensors;
