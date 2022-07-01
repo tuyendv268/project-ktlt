@@ -1,0 +1,7 @@
+id, direction, frequency
+1, increment, 13
+1, decrement, 14
+2, increment, 14
+2, decrement, 15
+3, increment, 12
+3, decrement, 13

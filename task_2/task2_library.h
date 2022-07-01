@@ -31,11 +31,12 @@ void print_sensors(vector<Sensor> sensors){
     }
 }
 
+// chuyển thời gian (giờ phút giây) sang giây
 int convert_time_to_second(Time time){
     return time.hour*3600 + time.minute*60 + time.second;
 }
 
-
+// chuyển giây sang thời gian (giờ phút giây)
 Time convert_second_to_time(int second){
     Time time;
     time.hour = (int) second/3600;
@@ -43,7 +44,7 @@ Time convert_second_to_time(int second){
     time.second = second - time.hour*3600 - time.minute*60;
     return time;
 }
-
+// phép trừ cho kiểu dữ liệu time
 Time subtract_time(Time time1, Time time2){
     int t1 = convert_time_to_second(time1);
     int t2= convert_time_to_second(time2);
@@ -51,13 +52,13 @@ Time subtract_time(Time time1, Time time2){
     return res;
 }
 
-
+// so sánh hai giá trị time và lấy thời điểm sớm hơn
 Time get_earlier_time(Time time1, Time time2){
     int t1 = convert_time_to_second(time1);
     int t2 = convert_time_to_second(time2);
     return (t1 > t2)?time2:time1;
 }
-
+// chuyển kiểu dữ liệu time sang chuỗi (string)
 string convert_time_to_string(Time time){
     string hour = (time.hour >= 10)?to_string(time.hour): ("0"+to_string(time.hour));
     string minute = (time.minute >= 10)?to_string(time.minute):("0"+to_string(time.minute));
@@ -65,6 +66,21 @@ string convert_time_to_string(Time time){
     return hour + ":" + minute + ":" + second;
 }
 
+// đếm số lượng sensors
+int count_number_of_sensor(vector<Sensor> sensors){
+    int min_id = INT_MAX, max_id = INT_MIN;
+    for(int i = 0; i < sensors.size(); i++){
+        if(min_id > sensors[i].id){
+            min_id = sensors[i].id;
+        }
+        if(max_id < sensors[i].id){
+            max_id = sensors[i].id;
+        }
+    }
+    return max_id - min_id + 1;
+}
+
+// ghi dữ liệu ra file csv
 void write_sensors_to_csv_file(vector<Sensor> sensors, string file_name){
     FILE *file_pointer;
     file_pointer = fopen(file_name.c_str(), "a");
@@ -77,7 +93,7 @@ void write_sensors_to_csv_file(vector<Sensor> sensors, string file_name){
     }
     fclose(file_pointer);
 }
-
+// chuyển chuỗi sang time (giờ phút giây)
 Time parse_time(char* time){
     Time output_time;
     int time_arr[3], count = 0;
@@ -100,7 +116,7 @@ Time parse_time(char* time){
     // cout<<output_time.hour<<"\n"<<output_time.minute<<"\n"<<output_time.second<<endl;
     return output_time;
 }
-
+// lấy các sensors và có speed values nằm ngoài khoảng (low, high)
 vector<Sensor> get_invalid_sensors(string file_name, int low, int high){
     // cout<<file_name<<endl;
     vector<Sensor> outlier_sensors, sensors = read_csv(file_name);
@@ -118,6 +134,8 @@ vector<Sensor> get_invalid_sensors(string file_name, int low, int high){
     return outlier_sensors;
 }
 
+// lấy các sensors và có speed values nằm trong khoảng (low, high)
+
 vector<Sensor> get_valid_sensors(string file_name, int low, int high){
     // cout<<file_name<<endl;
     vector<Sensor> outlier_sensors, sensors = read_csv(file_name);
@@ -134,7 +152,7 @@ vector<Sensor> get_valid_sensors(string file_name, int low, int high){
     }
     return outlier_sensors;
 }
-
+// đọc file csv
 vector<Sensor> read_csv(string file_name){
     FILE* fp = fopen(file_name.c_str(), "r");
     char buffer[1024];

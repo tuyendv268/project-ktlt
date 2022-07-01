@@ -11,22 +11,23 @@ Sensor find_max(vector<Sensor> sensors, int id, float left_value,float right_val
 Sensor find_average(vector<Sensor> sensors, int id, float left_value,float right_value);
 
 
+// lấy các giá trị min max, average của mỗi sensor
 vector<summary> get_data_summary(string file_name, float left_value, float right_value){
     vector<Sensor> sensors = get_valid_sensors(file_name, left_value, right_value);
     Sensor max_sensor, min_sensor, average_sensor;
     vector<summary> output_sensor;
 
     vector<Sensor> tmp = read_csv(file_name);
+    // sampling time bằng hiệu của hai lần lấy mẫu liên tiếp
     Time  sampling_time = subtract_time(tmp[0].time, tmp[1].time);
-    // cout<<convert_time_to_string(tmp[0].time)<<endl;
-    // cout<<convert_time_to_string(tmp[1].time)<<endl;
-    // cout<<convert_time_to_string(sampling_time)<<endl;
+
     int sampling_time_tmp = convert_time_to_second(sampling_time);
+    // simulation interval bằng số lần lấy mẫu nhân với sampling time
     Time simulation_interval = convert_second_to_time(sampling_time_tmp*tmp.size());
     
     set<int> unique_id;
     set<int>::iterator itr;
-
+    //  lấy các giá trị id của sensor
     for(int i = 0; i < sensors.size(); i++){
         unique_id.insert(sensors[i].id);
     }
@@ -42,14 +43,12 @@ vector<summary> get_data_summary(string file_name, float left_value, float right
         temp.min = min_sensor;
         temp.mean = average_sensor;
         output_sensor.push_back(temp);
-        // output_sensor.push_back(max_sensor);
-        // output_sensor.push_back(min_sensor);
-        // output_sensor.push_back(average_sensor);
+
     }
     return output_sensor;
 }
 
-
+// ghi data summary vào file csv
 void write_data_summary_to_csv(vector<summary> sensors, string file_name){
     FILE *file_pointer;
     int id;
@@ -76,21 +75,7 @@ void write_data_summary_to_csv(vector<summary> sensors, string file_name){
     }
     fclose(file_pointer);
 }
-
-int count_number_of_sensor(vector<Sensor> sensors){
-    int min_id = INT_MAX, max_id = INT_MIN;
-    for(int i = 0; i < sensors.size(); i++){
-        if(min_id > sensors[i].id){
-            min_id = sensors[i].id;
-        }
-        if(max_id < sensors[i].id){
-            max_id = sensors[i].id;
-        }
-    }
-
-    return max_id - min_id + 1;
-}
-
+// tìm sensors có speed value nhỏ nhất trong các sensor thỏa mãn điều kiện
 Sensor find_min(vector<Sensor> sensors, int id, float left_value, float right_value){
     Sensor min_sensor;
     min_sensor.values = 99999.0;
@@ -108,6 +93,8 @@ Sensor find_min(vector<Sensor> sensors, int id, float left_value, float right_va
     }
     return min_sensor;
 }
+// tìm sensors có speed value lớn nhất trong các sensor thỏa mãn điều kiện
+
 Sensor find_max(vector<Sensor> sensors, int id, float left_value, float right_value){
     Sensor max_sensor;
     max_sensor.values = -1.0;
@@ -126,6 +113,7 @@ Sensor find_max(vector<Sensor> sensors, int id, float left_value, float right_va
     return max_sensor;
 }
 
+// tính trung bình speed value trong các sensor thỏa mãn điều kiện
 Sensor find_average(vector<Sensor> sensors, int id, float left_value, float right_value){
     Sensor average_sensor;
     average_sensor.values = 0;
