@@ -33,10 +33,13 @@ void write_csv_file(vector<Sensor>, string);
 Time add_time(Time , Time );
 int parse_argument(vector<string> , const string );
 
-
+// kiểm tra xem một chuỗi có phải là số hay không
 bool is_number(string str){
     int size = str.length();
     for(int i = 0; i < size; i++){
+        if(str[i] == '-' && i == 0){
+            continue;
+        }
         if(isdigit(str[i]) == false){
             return false;
         }
@@ -44,6 +47,7 @@ bool is_number(string str){
     return true;
 }
 
+// lấy các giá trị tham số dựa vào keyword
 int parse_argument(vector<string> argvs, const string keyword){
     int index = -1;
     for(int i = 0; i < argvs.size(); i++){
@@ -57,15 +61,20 @@ int parse_argument(vector<string> argvs, const string keyword){
         }
     }
     if(index >= argvs.size()){
-        return 0;
+        return -2;
     }
+    int a = stoi(argvs[index+1]);
+    cout<<"a-log; "<<(a<=0)<<endl;
     if(is_number(argvs[index+1])){
+        if (stoi(argvs[index+1]) <= 0){
+            return -3;
+        }
         return stoi(argvs[index+1]);
     }else{
         return -1;
     }
 }
-
+//  phép cộng cho kiểu dữ liệu time
 Time add_time(Time time1, Time time2){
     Time result;
     int second = time1.second + time2.second;
@@ -77,7 +86,7 @@ Time add_time(Time time1, Time time2){
 
     return result;
 }
-
+// lấy thời gian hiện tại
 Time get_current_time(){
     time_t now = time(0);
     tm *ltm = localtime(&now);
@@ -88,17 +97,21 @@ Time get_current_time(){
     time.second = ltm->tm_sec;
     return time;
 }
+// chuyển thời gian(giờ-phút-giây) sang giây
 int convert_time_to_second(Time time){
     return time.hour*3600 + time.minute*60 + time.second;
 }
 
+// Phép trừ cho kiểu dữ liệu Time
 Time subtract_time(Time time1, Time time2){
     int t1 = convert_time_to_second(time1);
     int t2= convert_time_to_second(time2);
+    // Nếu mà t1 lớn hơn t2 thì lấy t1-t2 và ngược lại (để lấy giá trị dương)
     Time res = (t1 > t2)?convert_second_to_time(t1-t2):convert_second_to_time(t2-t1);
     return res;
 }
 
+// chuyển giây sang dạng thời gian(giờ-phút-giây)
 Time convert_second_to_time(int second){
     Time time;
     time.hour = (int) second/3600;
@@ -107,13 +120,14 @@ Time convert_second_to_time(int second){
     return time;
 }
 
+// chuyển kiểu dữ liệu time sang dạng chuỗi (string)
 string convert_time_to_string(Time time){
     string hour = (time.hour >= 10)?to_string(time.hour): ("0"+to_string(time.hour));
     string minute = (time.minute >= 10)?to_string(time.minute):("0"+to_string(time.minute));
     string second = (time.second >= 10)?to_string(time.second):("0"+to_string(time.second));
     return hour + ":" + minute + ":" + second;
 }
-
+// tạo dữ liệu
 vector<Sensor> generate_dataset(UserInput user_input){
     // use current time as seed for random generator
     srand(time(0));
@@ -129,6 +143,7 @@ vector<Sensor> generate_dataset(UserInput user_input){
             break;
         }
         for(int j = 1; j <= user_input.num_sensors; j++){
+            // nếu vượt quá số lần lấy mẫu sẽ kết thúc
             if(count >= number_of_sampling){
                 flag = 1;
                 break;
@@ -150,7 +165,7 @@ void display(vector<Sensor> sensors){
         cout<<sensors[i].id<<","<<convert_time_to_string(sensors[i].time)<<","<<sensors[i].values<<endl;
     }
 }
-
+// Ghi dữ liệu ra file 
 void write_csv_file(vector<Sensor> sensors, string file_name){
     FILE *file_pointer;
     file_pointer = fopen(file_name.c_str(), "w+");
@@ -164,6 +179,14 @@ void write_csv_file(vector<Sensor> sensors, string file_name){
     fclose(file_pointer);
 }
 
+void write_to_log_file(string file_name, string str){
+    FILE *file_pointer;
+    file_pointer = fopen(file_name.c_str(), "a");
+    fprintf(file_pointer,str.c_str());
+    cout<<str<<endl;
+    fclose(file_pointer);
+}
+
 void save_data(vector<Sensor> sensors){
     int starting_time = convert_time_to_second(sensors[0].time);
     string file_name = "speed_data_"+to_string(starting_time)+".csv";
@@ -174,34 +197,60 @@ void save_data(vector<Sensor> sensors){
 int main(int argc, char** argv){
     UserInput user_input;
     vector<string> argvs(argv, argv+argc);
+    string log_file_name = "task1.log";
 
+    // lấy giá trị num_sensors từ tham số mà người dùng truyền vào
     int num_sensors = parse_argument(argvs, "-n");
-    if(num_sensors == 0){
+    // cout<<"num_sensor-log: "<<num_sensors<<endl;
+    if(num_sensors == -2){
         user_input.num_sensors = 1;
     }else if(num_sensors == -1){
+    // nếu có keyword -n mà không có giá trị num_sensors thì sẽ thông báo cho người dùng và kết thúc chương trình
         cout<<"you haven't enter value for -n argument !"<<endl;
+        write_to_log_file(log_file_name, "error 1.1: invalid command line argument\n");
+        return 0;
+    }else if(num_sensors == -3){
+    // nếu giá trị nhỏ hơn 0 thì sẽ báo lỗi
+        write_to_log_file(log_file_name, "error 1.2: invalid number of sensors\n");
         return 0;
     }else{
+    // nếu không có keyword -n và num_sensors thì lấy giá trị mặc định là 1
         user_input.num_sensors = num_sensors;
     }
     cout<<user_input.num_sensors<<endl;
 
+    // lấy giá trị sampling từ tham số mà người dùng truyền vào
     int sampling = parse_argument(argvs, "-st");
-    if(sampling == 0){
+    if(sampling == -2){
+    // nếu không có keyword -st và sampling thì lấy giá trị mặc định là 10
         user_input.sampling = 10;
     }else if(sampling == -1){
+    // nếu có keyword -st mà không có giá trị sampling thì sẽ thông báo cho người dùng và kết thúc chương trình
         cout<<"you haven't enter value for -st argument !"<<endl;
+        write_to_log_file(log_file_name, "error 1.1: invalid command line argument\n");
+        return 0;
+    }else if(sampling == -3){
+    // nếu giá trị nhỏ hơn 0 thì sẽ báo lỗi
+        write_to_log_file(log_file_name, "error 1.3: invalid number of sampling time\n");
         return 0;
     }else{
         user_input.sampling = sampling;
     }
     cout<<user_input.sampling<<endl;
     
+    // lấy giá trị interval từ tham số mà người dùng truyền vào
     int interval = parse_argument(argvs, "-si");
-    if(interval == 0){
+    if(interval == -2){
+    // nếu không có keyword -si và interval thì lấy giá trị mặc định là 3600
         user_input.interval = 3600;
     }else if(interval == -1){
+    // nếu có keyword -si mà không có giá trị interval thì sẽ thông báo cho người dùng và kết thúc chương trình
         cout<<"you haven't enter value for -si argument !"<<endl;
+        write_to_log_file(log_file_name, "error 1.1: invalid command line argument\n");
+        return 0;
+    }else if(interval == -3 ||  interval<sampling){
+    // nếu giá trị nhỏ hơn 0 thì sẽ báo lỗi
+        write_to_log_file(log_file_name, "error 1.4: invalid duration\n");
         return 0;
     }else{
         user_input.interval = interval;
