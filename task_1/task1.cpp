@@ -44,6 +44,7 @@ bool is_number(string str){
             return false;
         }
     }
+    cout<<"is digit"<<endl;
     return true;
 }
 
@@ -63,8 +64,8 @@ int parse_argument(vector<string> argvs, const string keyword){
     if(index >= argvs.size()){
         return -2;
     }
-    int a = stoi(argvs[index+1]);
-    cout<<"a-log; "<<(a<=0)<<endl;
+    // int a = stoi(argvs[index+1]);
+    // cout<<"a-log; "<<(a<=0)<<endl;
     if(is_number(argvs[index+1])){
         if (stoi(argvs[index+1]) <= 0){
             return -3;
